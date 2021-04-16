@@ -1,0 +1,68 @@
+# 三段式
+
+module FSM(
+    input clk,
+    input rst_n,
+    input [1:0] a,
+    
+    output reg [1:0] b
+    );
+    
+    localparam IDLE = 2'b00;   // using one-hot code
+    localparam S1   = 2'b01;
+    localparam S2   = 2'b11;
+    localparam S3   = 2'b10;
+    
+    reg [1:0] cs;   // current state
+    reg [1:0] ns;   // next stae
+    
+    // first async reset 异步复位
+    always@(posedge clk or negedge rst_n) 
+    begin
+        if(~rst_n)
+          cs<= IDLE;    //非阻塞赋值
+         else
+          cs<=ns;
+       end
+    
+    //组合逻辑块，描述状态转移条件判断
+    always@(*)   或者 always@（cs）//电平触发
+    begin
+       case（cs）
+            IDLE: begin
+                if（a==2'b0）
+                    ns = IDLE;  // 阻塞赋值
+                  else
+                   ns = S1;
+                  end
+               S1:
+               S2:
+            default:  begin
+                   ns = IDLE;   //阻塞赋值
+                end
+           endcase
+       end
+       
+      always@(posedge clk or negedge rst_n)
+      begin
+          case(ns)   //如果用cs，输出会滞后一个周期
+          IDLE: begin
+                b  <= 2'b11;
+                end
+            S1:
+            S2:
+           default:begin    // 避免出锁存器
+             b<= 2'b0;
+            end
+           endcase
+          end
+          
+         endmodule
+         
+         
+         
+         
+       
+          
+       
+       
