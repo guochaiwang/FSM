@@ -5,12 +5,15 @@ module kore_opfsm (
 
   input    clk    ,
   input    rst_n    ,
-  input     IR_code  ,  
+  input     IR_code  , [31:0] pcdata_in ,    
+
+  input    eop,    //from func fsm
 
 
-  output    opcode    ,
+  output    opcode      ,
   output    pcdata_rs0  ,
   output    pcdata_rs1  ,
+  output    pcdata_rd   ,  
   output    pcdata_bc    ,
 
   output    opflag    
@@ -48,7 +51,10 @@ localparam   S4   =  8'H4;   //S0
   always@(*) begin
     case(cs)
         IDLE: begin
-
+          if(pcdata_in[14:12]==3'b111)   //bc jump 
+            ns = S1;
+          else
+            ns = IDLE; 
         end
         S1:begin
 
@@ -60,6 +66,25 @@ localparam   S4   =  8'H4;   //S0
   end
 
 
+  always@(posedge clk or negedge rst_n) begin
+    case(ns)
+      IDLE: begin
+        opcaode[6:0] <= pcdata_in [6:0] ;
+        opflag    <= 1'b0   ;
+        din_vld   <= 1'b1   ;   //wait for hand shake
+        dout      <= 32'b0  ;
+        dout_rdy  <= 1'b0   ;   //not rdy out
+      end
+      S1:  begin
+
+      end
+
+      default:begin
+
+      end
+    endcase
+
+  end
 
   
 
