@@ -5,7 +5,9 @@ module kore_opfsm (
 
   input    clk    ,
   input    rst_n    ,
-  input     IR_code  , [31:0] pcdata_in ,    
+  input    IR_code  , [31:0] pcdata_in ,    
+
+  input    din_hs  ,   //data in hand shake 
 
   input    eop,    //from func fsm
 
@@ -57,8 +59,29 @@ localparam   S4   =  8'H4;   //S0
             ns = IDLE; 
         end
         S1:begin
-
+          if(eop == 1'b1 )    //wait for end of opration
+              ns = S2 ;  // fanout
+          else
+              ns = S1 ; //wait for fanout
         end
+      S2: begin
+        if(pcdata_in[14:12] == 3'b111)
+          ns = S3 ;
+        else
+          ns = S2 ;
+      end
+      S3: begin
+        if(eop == 1'b1) 
+            ns = S4;
+          else
+            ns = S3;
+      end
+      S4: begin
+        if(pcdata_in[14:12] == 3'b111)
+          ns = IDLE;
+        else
+          ns = S4;
+      end
       default:begin
         ns = IDLE;
       end
@@ -69,18 +92,27 @@ localparam   S4   =  8'H4;   //S0
   always@(posedge clk or negedge rst_n) begin
     case(ns)
       IDLE: begin
-        opcaode[6:0] <= pcdata_in [6:0] ;
+        opcode[6:0] <= pcdata_in [6:0] ;
         opflag    <= 1'b0   ;
         din_vld   <= 1'b1   ;   //wait for hand shake
         dout      <= 32'b0  ;
         dout_rdy  <= 1'b0   ;   //not rdy out
       end
       S1:  begin
-
+          opflag  <= 1'b1  ;  //
       end
-
+      S2:  begin
+          opflag <= 1'b0;   //wait to fan out
+          
+      end
+      S3:  begin
+          opflag <= 1'b1;   //
+      end
+      S4:begin
+         opflag <= 1'b0;   //wait to fan out
+      end
       default:begin
-
+         opflag <= 1'b0;   //wait to fan out
       end
     endcase
 
