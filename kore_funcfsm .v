@@ -64,6 +64,7 @@ localparam   S4   =  8'H4;   //S0
         S1:begin
             ns = S2;
         end
+            
         S3: begin
             ns = S4;
         end
