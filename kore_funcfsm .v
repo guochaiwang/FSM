@@ -103,6 +103,8 @@ localparam   S4   =  8'H4;   //S0
         reg_sel <=      ;   
         case(opcode)   //opcode to add/mul/sub/
         'h1:   data_out <= opradata_rs0 * opradata_rs1 ;
+        'h2:   data_out <= opradata_rs0 + opradata_rs1 ;
+        'h4:   data_out <= opradata_rs0 - opradata_rs1 ;      
         endcase
       end
      S4:  begin
