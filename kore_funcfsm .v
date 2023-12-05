@@ -2,23 +2,23 @@ module  kore_funcfsm (
         input   clk     ,
         input   rst_n    ,
 
-        input   opcode      ,   
-        input   pcdata_rs0  ,   
-        input   pcdata_rs1  ,   
-        input   pcdata_rd   ,   
-        input   pcdata_bc   ,        
+        input   [6:0]  opcode      ,   
+        input   [4:0]  pcdata_rs0  ,   
+        input   [4:0]  pcdata_rs1  ,   
+        input   [4:0]  pcdata_rd   ,   
+        input   [2:0]  pcdata_bc   ,        
 
         input   opflag      ,
 
         input   [31:0]   data_bus , 
 
 
-        output      reg_sel   ,           //RS1//RS2//RD
+        output  reg [4:0]    reg_sel   ,    //to kore regbank       //RS1//RS2//RD
         output      reg_rd    ,           //  
-        output   [31:0]   data_out  ,            //
-        output      dout_rdy    ,
-        output      reg_wt      ,           //write enable
-        output      eop                    //end of opration
+        output   [31:0]   data_out  ,    // data to kore_regbank        
+
+        output      wt_en      ,           //write enable  to kore_regbank
+        output   reg    eop                    //end of opration
 
 );
 
