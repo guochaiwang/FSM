@@ -10,15 +10,15 @@ module  kore_funcfsm (
 
         input   opflag      ,
 
-        input   [31:0]   data_bus , 
+        input   [31:0]   data_bus ,    //dout from reg bank 
 
 
-        output  reg [4:0]    reg_sel   ,    //to kore regbank       //RS1//RS2//RD
-        output      reg_rd    ,           //  
-        output   [31:0]   data_out  ,    // data to kore_regbank        
+        output   reg   [4:0]    reg_sel   ,    //to kore regbank       //RS1//RS2//RD
+        output   reg            reg_rd    ,           //  
+        output   reg   [31:0]   data_out  ,    // data to kore_regbank        
 
-        output      wt_en      ,           //write enable  to kore_regbank
-        output   reg    eop                    //end of opration
+        output   reg            wt_en     ,           //write enable  to kore_regbank
+        output   reg            eop                    //end of opration
 
 );
 
@@ -85,43 +85,59 @@ localparam   S4   =  8'H4;   //S0
   always@(posedge clk or negedge rst_n) begin
     case(ns)
       IDLE: begin
-            eop  <= 1'b0;
+            eop      <= 1'b0;
+            reg_sel  <= 4'b0;
+            reg_rd   <=  1'b0;
+            wt_en    <=  1'b0;
+            opradata_rs0   <= 32'b0   ;  
+            opradata_rs1   <=  32'b0  ;  
+            opradata_rd    <=  32'b0  ; 
+            data_out       <=   32'b0  ;              
       end
       S1:  begin
             eop  <= 1'b0    ;
             reg_sel <=  pcdata_rs0 ;    
-            reg_rd <= 1'b1  ; //decoder reg == rs0
+            reg_rd  <= 1'b1  ; //decoder reg == rs0
+            wt_en    <=  1'b0;
             opradata_rs0 <= data_bus  ; 
+            opradata_rs1   <=  opradata_rs1  ;  
+            opradata_rd    <=  opradata_rd  ; 
+            data_out       <=   data_out  ;               
       end
       S2:  begin
             eop  <= 1'b0    ;
             reg_sel <=  pcdata_rs1 ;    
             reg_rd <= 1'b1  ; //decoder reg == rs0
-            opradata_rs1 <= data_bus  ;                 
+            opradata_rs0 <= opradata_rs0 ;  
+            opradata_rs1 <= data_bus  ;   
+            
       end
       S3:begin
         reg_rd  <= 1'b0;
-        reg_sel <=      ;   
+        reg_sel <=  pcdata_rd    ;   //data bus = rd dout
         case(opcode)   //opcode to add/mul/sub/
-        'h1:   data_out <= opradata_rs0 * opradata_rs1 ;
-        'h2:   data_out <= opradata_rs0 + opradata_rs1 ;
-        'h4:   data_out <= opradata_rs0 - opradata_rs1 ;      
+        'h1:   opradata_rd <= opradata_rs0 * opradata_rs1 ;
+        'h2:   opradata_rd <= opradata_rs0 + opradata_rs1 ;
+        'h4:   opradata_rd <= opradata_rs0 - opradata_rs1 ;  
+        'h8:   opradata_rd <= opradata_rs0 - 1'b1;    
         endcase
       end
      S4:  begin
-        reg_wt [4:0] <= pcdata_rd ;  
-        dout_rdy  <= 1'b1   ;
-        eop <= 1'b1;
+        reg_rd  <= 1'b0;
+        wt_en   <=  1'b1 ;
+        data_out <= opradata_rd ;
+        reg_sel [4:0] <= pcdata_rd ;          
+        dout_rdy  <= 1'b1   ;                
+        eop <= 1'b1;                
      end
      S5: begin
-        eop <= eop;
-        dout_rdy <= dout_rdy;
-        data_out <= data_out ;
+        eop <= eop;    
+        dout_rdy <= dout_rdy;   
+        data_out <= data_out ;  
      end
       default:begin
 
       end
-
 
 
       
